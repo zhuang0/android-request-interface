@@ -19,17 +19,21 @@ class AsyncRequestRunner extends Activity {
 	 *            回调对象
 	 */
 	private String response;
-	public void request(final String url, final RequestParameters params, final String httpMethod, final RequestListener listener) {
+	public void request(final String url, final RequestParameters params, final String httpMethod,
+			final RequestListener listener) {
+
 		new Thread() {
 			@Override
 			public void run() {
 				try {
 					response = HttpManager.openUrl(url, httpMethod, params);
 					listener.onComplete(response);
+
 				} catch (RequestException e) {
 					listener.onError(e);
 
 				}
+
 			}
 		}.start();
 

@@ -2,9 +2,6 @@ package com.zhuang.sheen.activity;
 
 import java.io.IOException;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
@@ -16,8 +13,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
 import com.zhuang.sheen.requestinterface.AsyncImageLoader;
-import com.zhuang.sheen.requestinterface.AsyncImageLoader.ImageCallback;
 import com.zhuang.sheen.requestinterface.R;
 import com.zhuang.sheen.requestinterface.RequestException;
 import com.zhuang.sheen.requestinterface.RequestInterface;
@@ -33,6 +34,8 @@ public class MainActivity extends Activity {
 	ImageView imageView;
 	RequestInterface requestInterface;
 	AsyncImageLoader asyncImageLoader;
+	ImageLoader imageLoader;
+	DisplayImageOptions options;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +49,26 @@ public class MainActivity extends Activity {
 		requestInterface = new RequestInterface();
 		asyncImageLoader = new AsyncImageLoader(getApplicationContext());
 
-		// url = "http://www.baidu.com";
 		url = "http://www.webservicex.net/globalweather.asmx/GetWeather";
 		requestInterface.addParameter("CityName", "beijing");
 		requestInterface.addParameter("CountryName", "china");
-		imageUrl = "http://photocdn.sohu.com/20130227/Img367284140.jpg";
+		imageUrl = "http://www.sucaitianxia.com/png/UploadFiles_6130/200803/20080321003432189.png";
+
+		imageLoader = ImageLoader.getInstance();
+
+		options = new DisplayImageOptions.Builder().cacheInMemory().cacheOnDisc()
+				.bitmapConfig(Bitmap.Config.RGB_565).build();
+
+		ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
+				getApplicationContext()).threadPriority(Thread.NORM_PRIORITY - 2)
+				.denyCacheImageMultipleSizesInMemory()
+				.discCacheFileNameGenerator(new Md5FileNameGenerator())
+				.tasksProcessingOrder(QueueProcessingType.LIFO).enableLogging() // Not
+																				// necessary
+																				// in
+																				// common
+				.build();
+		imageLoader.init(config);
 
 		button.setOnClickListener(new OnClickListener() {
 
@@ -84,14 +102,13 @@ public class MainActivity extends Activity {
 								textView.setText(nameString);
 							}
 						});
-						//若返回json：
-						/*try {
-							JSONObject object = new JSONObject(response);
-							String value = object.getString("key");
-						} catch (JSONException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}*/
+						// 若返回json：
+						/*
+						 * try { JSONObject object = new JSONObject(response);
+						 * String value = object.getString("key"); } catch
+						 * (JSONException e) { // TODO Auto-generated catch
+						 * block e.printStackTrace(); }
+						 */
 
 					}
 				});
@@ -104,18 +121,20 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				asyncImageLoader.asyncLoadBitmap(imageUrl, imageView, imageUrl, new ImageCallback() {
 
-					@Override
-					public void imageLoaded(Bitmap bitmap, ImageView imageView, String tag) {
-						// TODO Auto-generated method stub
-						asyncImageLoader.showImg(imageView, bitmap, getApplicationContext());
-					}
-				});
+				imageLoader.displayImage(imageUrl, imageView, options);
+				/*
+				 * asyncImageLoader.asyncLoadBitmap(imageUrl, imageView,
+				 * imageUrl, new ImageCallback() {
+				 * 
+				 * @Override public void imageLoaded(Bitmap bitmap, ImageView
+				 * imageView, String tag) { // TODO Auto-generated method stub
+				 * asyncImageLoader.showImg(imageView, bitmap,
+				 * getApplicationContext()); } });
+				 */
 			}
 		});
 	}
-
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
